@@ -11,6 +11,14 @@ sudo service docker stop
 sudo dockerd --max-concurrent-downloads 1 --max-download-attempts 10
 ```
 
+## Err:1 http://deb.debian.org/debian bullseye InRelease
+When "exec console" in a container, it does not update, run `cd /etc` and edit the file:
+```
+cat > resolv.conf << EOL
+nameserver 8.8.8.8
+options edns0 trust-ad ndots:0
+EOL
+```
 ## 1. Rust Desk:
 ```
 version: '3'
@@ -141,3 +149,72 @@ services:
       - MYSQL_HOST=db
 ```
 > Choose a strong MYSQL_ROOT_PASSWORD and MYSQL_PASSWORD
+
+Once you have done the first login, from portainer exec console in nextcloud-app-1 and connect as root, then run:
+```
+nano config/config.php
+```
+Add this line in the penultimate row
+```
+'overwriteprotocol' => 'https',
+```
+Increase the memory limits `nano .htaccess` and add the next rows to the end of the file:
+```
+php_value memory_limit 1G
+php_value upload_max_filesize 16G
+php_value post_max_size 16G
+php_value max_input_time 3600
+php_value max_execution_time 3600
+```
+Restart the container
+
+## 4. Filezilla
+```
+version: "2.1"
+services:
+  filezilla:
+    image: lscr.io/linuxserver/filezilla:latest
+    container_name: filezilla
+    security_opt:
+      - seccomp:unconfined #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - /path/to/config:/config
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+```
+> obtain PUID and PGID running: `id -u username` and `id -g username`, where **username** is the actual server username
+
+## 5. QBittorrent
+```
+version: "2.1"
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Perth
+      - WEBUI_PORT=8080
+    volumes:
+      - /home/docker/QbitTorrent:/config
+      - /media/docker/Torrents:/downloads
+      - /media/docker/IncompleteTorrents:/incomplete
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+restart: unless-stopped
+
+```
+> Edit the location of config, downloas and incomplete
+
+## 6. Jellyfin
+```
+
+```
