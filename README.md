@@ -48,8 +48,15 @@ services:
       - ./data:/root
     networks:
       - rustdesk-net
-restart: unless-stopped
+    restart: unless-stopped
 ```
-> Use your IP addess
+> Use your public IP address
 
-From **Portainer** edit the 
+From **Portainer** exec console for **hbbr** container, and run:
+```
+apt update && apt install nano -y
+nano id_edxxxxx.pub
+```
+Use this key to setup rustdesk clients.
+
+## 2. 
