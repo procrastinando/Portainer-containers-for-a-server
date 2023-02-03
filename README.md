@@ -14,7 +14,7 @@ sudo dockerd --max-concurrent-downloads 1 --max-download-attempts 10
 ## Err:1 http://deb.debian.org/debian bullseye InRelease
 When "exec console" in a container, it does not update, run `cd /etc` and edit the file:
 ```
-cat > resolv.conf << EOL
+cat > /etc/resolv.conf << EOL
 nameserver 8.8.8.8
 options edns0 trust-ad ndots:0
 EOL
