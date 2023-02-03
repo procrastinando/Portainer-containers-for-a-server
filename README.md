@@ -59,4 +59,85 @@ nano id_edxxxxx.pub
 ```
 Use this key to setup rustdesk clients.
 
-## 2. 
+## 2. Wordpress
+```
+version: "3"
+services:
+  mysql_db:
+    container_name: mysql_container
+    environment:
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_PASSWORD: secretpassword1
+      MYSQL_ROOT_PASSWORD: secretpassword2
+      MYSQL_USER: wordpress_user
+    image: "mysql:5.7"
+    restart: always
+    volumes:
+      - "mysql:/var/lib/mysql"
+  wordpress:
+    container_name: wordpress_container
+    depends_on:
+      - mysql_db
+    environment:
+      WORDPRESS_DB_HOST: "mysql_db:3306"
+      WORDPRESS_DB_NAME: wordpress_db
+      WORDPRESS_DB_PASSWORD: secretpassword1
+      WORDPRESS_DB_USER: wordpress_user
+    image: "wordpress:latest"
+    ports:
+      - "8080:80"
+    restart: always
+    volumes: 
+      - "./:/var/www/html"
+volumes:
+  mysql: {}
+```
+> Choose a strong MYSQL_ROOT_PASSWORD and WORDPRESS_DB_PASSWORD
+
+To increase file size and memory:
+```
+nano php.ini
+```
+Add the next lines:
+```
+upload_max_filesize = 256M
+post_max_size = 256M
+php_value memory_limit 256M
+```
+## 3. NextCloud
+```
+version: '2'
+
+volumes:
+  nextcloud:
+  db:
+
+services:
+  db:
+    image: mariadb:10.5
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=secretpassword1
+      - MYSQL_PASSWORD=secretpassword2
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+
+  app:
+    image: nextcloud
+    restart: always
+    ports:
+      - 8888:80
+    links:
+      - db
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - MYSQL_PASSWORD=secretpassword2
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=db
+```
+> Choose a strong MYSQL_ROOT_PASSWORD and MYSQL_PASSWORD
