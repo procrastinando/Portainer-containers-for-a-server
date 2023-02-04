@@ -199,7 +199,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Australia/Perth
+      - TZ=Europe/London
       - WEBUI_PORT=8080
     volumes:
       - /home/docker/QbitTorrent:/config
@@ -214,7 +214,22 @@ restart: unless-stopped
 ```
 > Edit the location of config, downloas and incomplete
 
-## 6. Jellyfin
+## 6. Babybuddy
 ```
-
+version: "2.1"
+services:
+  babybuddy:
+    image: lscr.io/linuxserver/babybuddy:latest
+    container_name: babybuddy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8001,https://babybuddy.domain.com
+    volumes:
+      - /path/to/appdata:/config
+    ports:
+      - 8001:8000
+    restart: unless-stopped
 ```
+> Edit your domain
