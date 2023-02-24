@@ -22,11 +22,9 @@ EOL
 ## 1. Rust Desk:
 ```
 version: '3'
-
 networks:
   rustdesk-net:
     external: false
-
 services:
   hbbs:
     container_name: hbbs
@@ -38,13 +36,12 @@ services:
     image: rustdesk/rustdesk-server:latest
     command: hbbs -r 100.100.100.100:21117 -k _
     volumes:
-      - ./data:/root
+      - /home/ubuntu/rustdesk/hbbs:/root
     networks:
       - rustdesk-net
     depends_on:
       - hbbr
     restart: unless-stopped
-
   hbbr:
     container_name: hbbr
     ports:
@@ -53,7 +50,7 @@ services:
     image: rustdesk/rustdesk-server:latest
     command: hbbr -k _
     volumes:
-      - ./data:/root
+      - /home/ubuntu/rustdesk/hbbr:/root
     networks:
       - rustdesk-net
     restart: unless-stopped
@@ -69,36 +66,37 @@ Use this key to setup rustdesk clients.
 
 ## 2. Wordpress
 ```
-version: "3"
+version: '2'
 services:
-  mysql_db:
-    container_name: mysql_container
-    environment:
-      MYSQL_DATABASE: wordpress_db
-      MYSQL_PASSWORD: secretpassword1
-      MYSQL_ROOT_PASSWORD: secretpassword2
-      MYSQL_USER: wordpress_user
-    image: "mysql:5.7"
-    restart: always
-    volumes:
-      - "mysql:/var/lib/mysql"
-  wordpress:
-    container_name: wordpress_container
-    depends_on:
-      - mysql_db
-    environment:
-      WORDPRESS_DB_HOST: "mysql_db:3306"
-      WORDPRESS_DB_NAME: wordpress_db
-      WORDPRESS_DB_PASSWORD: secretpassword1
-      WORDPRESS_DB_USER: wordpress_user
-    image: "wordpress:latest"
-    ports:
-      - "8080:80"
-    restart: always
-    volumes: 
-      - "./:/var/www/html"
+   db:
+     container_name: wordpress_db
+     image: mysql:5.7
+     volumes:
+       - /home/ubuntu/wordpress/db:/var/lib/mysql
+     environment:
+       MYSQL_ROOT_PASSWORD: password
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+     restart: always
+
+   wordpress:
+     container_name: wordpress_container
+     image: wordpress:latest
+     volumes: 
+      - /home/ubuntu/wordpress/wordpress:/var/www/html
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+     depends_on:
+       - db
+     ports:
+       - 81:80
+     restart: always
+      
 volumes:
-  mysql: {}
+    db_data:
 ```
 > Choose a strong MYSQL_ROOT_PASSWORD and WORDPRESS_DB_PASSWORD
 
@@ -115,35 +113,32 @@ php_value memory_limit 256M
 ## 3. NextCloud
 ```
 version: '2'
-
 volumes:
   nextcloud:
   db:
-
 services:
   db:
     image: mariadb:10.5
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
-      - db:/var/lib/mysql
+      - /home/ubuntu/nextcloud/db:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=secretpassword1
-      - MYSQL_PASSWORD=secretpassword2
+      - MYSQL_ROOT_PASSWORD=password1
+      - MYSQL_PASSWORD=password2
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
-
   app:
     image: nextcloud
     restart: always
     ports:
-      - 8888:80
+      - 82:80
     links:
       - db
     volumes:
-      - nextcloud:/var/www/html
+      - /home/ubuntu/nextcloud/nextcloud:/var/www/html
     environment:
-      - MYSQL_PASSWORD=secretpassword2
+      - MYSQL_PASSWORD=password2
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
       - MYSQL_HOST=db
@@ -225,11 +220,27 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8001,https://babybuddy.domain.com
+      - CSRF_TRUSTED_ORIGINS=http://127.0.0.1:83,https://babybuddy.domain.com
     volumes:
-      - /path/to/appdata:/config
+      - /home/ubuntu/babybuddy:/config
     ports:
-      - 8001:8000
+      - 83:8000
     restart: unless-stopped
 ```
-> Edit your domain
+> Edit your domain. User: admin, Password: admin
+## 7. Guacamole
+```
+version: "3"
+services:
+  guacamole:
+    image: abesnier/guacamole
+    container_name: guacamole
+    volumes:
+      - /home/ubuntu/guacamole/postgres:/config
+    ports:
+      - 84:8080
+volumes:
+  postgres:
+    driver: local
+```
+> User: guacadmnin, Password: guacadmin
