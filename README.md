@@ -65,7 +65,7 @@ nano id_edxxxxx.pub
 ```
 Use this key to setup rustdesk clients.
 
-## 2. Wordpress
+## 2.1. Wordpress x86
 ```
 version: '2'
 services:
@@ -84,6 +84,40 @@ services:
    wordpress:
      container_name: wordpress_container
      image: wordpress:latest
+     volumes: 
+      - /home/ubuntu/wordpress/wordpress:/var/www/html
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+     depends_on:
+       - db
+     ports:
+       - 81:80
+     restart: always
+      
+volumes:
+    db_data:
+```
+## 2.2. Wordpress ARM
+```
+version: '2.1'
+services:
+   db:
+     container_name: wordpress_db
+     image: arm64v8/mariadb:latest
+     volumes:
+       - /home/ubuntu/wordpress/db:/var/lib/mysql
+     environment:
+       MYSQL_ROOT_PASSWORD: password
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+     restart: always
+
+   wordpress:
+     container_name: wordpress_container
+     image: arm64v8/wordpress
      volumes: 
       - /home/ubuntu/wordpress/wordpress:/var/www/html
      environment:
